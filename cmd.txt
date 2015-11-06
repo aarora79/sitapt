@@ -1,0 +1,3 @@
+%run sitapt.py -c aa1603@georgetown.edu:amit1234 -w 'sitapt.log' -d d:\datalake -a everything-except-ingestion -t .\temp
+
+sitapt.py -c aa1603@georgetown.edu:amit1234 -w 'sitapt.log' -u https://data.caida.org/datasets/passive-2015/ https://data.caida.org/datasets/passive-2014/ https://data.caida.org/datasets/passive-2013/ https://data.caida.org/datasets/passive-2012/ https://data.caida.org/datasets/passive-2011/ https://data.caida.org/datasets/passive-2010/ https://data.caida.org/datasets/passive-2009/ https://data.caida.org/datasets/passive-2008/ -d d:\datalake

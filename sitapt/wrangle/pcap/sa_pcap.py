@@ -34,7 +34,7 @@ def _get_pcap_rec_header(pcap_rec_header):
     rec_hdr_as_dict = { 'ts_sec' :  socket.ntohl(pcap_rec_header[0]),
                         'ts_usec':  socket.ntohl(pcap_rec_header[1]),
                         'incl_len': socket.ntohl(pcap_rec_header[2]),
-                        'orig_len': socket.ntohl(pcap_rec_header[2])
+                        'orig_len': socket.ntohl(pcap_rec_header[3])
                  }
     return rec_hdr_as_dict
 

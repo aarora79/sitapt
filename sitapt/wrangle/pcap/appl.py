@@ -80,6 +80,10 @@ def _find_appl_for_ip_protocol(proto):
     # >= 142 is not used
     return 'unassgined' if proto >= 142 else ip_protocol_list_df.iloc[int(proto)]['Keyword']
 
+def find_appl_for_ip_protocol(proto):
+    #public version of the _find_appl_for_ip_protocol function
+    return _find_appl_for_ip_protocol(proto)
+    
 def get_appl_info(network_header, transport_header, pkt_data):
     pkt_info = {}
     #check if the port list has been loaded successfully, if not then return empty

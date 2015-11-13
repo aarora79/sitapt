@@ -22,15 +22,18 @@ import pprint
 import gzip
 import json
 
+
 #import submodules
 from globals import globals
 from utils import sa_logger
 from wrangle import dbif
+import network_layer as nl
+import appl_layer as appl
 
 #global varialbes for this file
 logger = sa_logger.init(globals.PACKAGE_NAME)
 
-analysis_collection_list = ['applications', 'protocols', 'packet_size_distribution']
+analysis_collection_list = ['applications', 'protocols', 'packet_size_distribution', 'quic_info']
 
 #private functions in this module
 
@@ -69,7 +72,7 @@ def _get_metadata_about_coll(data_coll_db_name, coll_name):
     return status, meta_dict
 
 
-def _analyze_collection_and_store_results_in_db(data_coll_db_name, coll_name, data_analysis_db_name):
+def _map_reduce_collection(data_coll_db_name, coll_name, data_analysis_db_name):
     #each collection's analysis is represented as a document in the resuls database
     #the results fb has collections for applications, protocols and packet size distribution
 
@@ -81,21 +84,47 @@ def _analyze_collection_and_store_results_in_db(data_coll_db_name, coll_name, da
     logger.info(meta)
 
     if status == globals.OK:
-        #get application info
-        dbif.db_add_record_to_collection(data_analysis_db_name, 'applications', (meta))
+        info['meta'] = meta
 
-        #get protcol info
-        dbif.db_add_record_to_collection(data_analysis_db_name, 'protocols', (meta))
+        if dbif.db_is_doc_in_coll(data_analysis_db_name, 'quic_info', {"meta.name": coll_name}) != True:
+            #get quic info 
+            logger.info('adding quic information for ' + coll_name)
+            info['items'] = appl.get_quic_info(data_coll_db_name, coll_name)
+            dbif.db_add_record_to_collection(data_analysis_db_name, 'quic_info', (info))
+        else:
+            logger.info('document ' + coll_name + 'already exists in quic info table, skipping')
 
-        #get packet size info
-        dbif.db_add_record_to_collection(data_analysis_db_name, 'packet_size_distribution', (meta))
+        if dbif.db_is_doc_in_coll(data_analysis_db_name, 'packet_size_distribution', {"meta.name": coll_name}) != True:
+            #get packet size info
+            logger.info('adding pktsize information for ' + coll_name)
+            info['items'] = nl.get_pktsize_distribution_info(data_coll_db_name, coll_name)
+            dbif.db_add_record_to_collection(data_analysis_db_name, 'packet_size_distribution', (info))
+        else:
+            logger.info('document ' + coll_name + 'already exists in packet_size_distribution table, skipping')
+
+        if dbif.db_is_doc_in_coll(data_analysis_db_name, 'protocols', {"meta.name": coll_name}) != True:
+            #get protcol info
+            logger.info('adding network layer information for ' + coll_name)
+            info['items'] = nl.get_network_layer_info(data_coll_db_name, coll_name)
+            dbif.db_add_record_to_collection(data_analysis_db_name, 'protocols', (info))
+        else:
+            logger.info('document ' + coll_name + 'already exists in protocols table, skipping')
+
+        if dbif.db_is_doc_in_coll(data_analysis_db_name, 'applications', {"meta.name": coll_name}) != True:
+            #get application info
+            logger.info('adding application layer information for ' + coll_name)
+            info['items'] = appl.get_appl_layer_info(data_coll_db_name, coll_name)
+            dbif.db_add_record_to_collection(data_analysis_db_name, 'applications', (info))
+        else:
+            logger.info('document ' + coll_name + 'already exists in applications table, skipping')
 
 
-def _analyze_each_collection_and_store_results_in_db(data_coll_db_name, data_analysis_db_name):
+
+def _map_reduce_each_collection(data_coll_db_name, data_analysis_db_name):
     coll_names = dbif.db_get_collection_names(data_coll_db_name)
     for coll in coll_names:
         logger.info('analyzing collection ' + coll)
-        _analyze_collection_and_store_results_in_db(data_coll_db_name, coll, data_analysis_db_name)
+        _map_reduce_collection(data_coll_db_name, coll, data_analysis_db_name)
     logger.info('finished analysing collections in ' + data_coll_db_name)
 #public functions in the this module
 
@@ -105,6 +134,6 @@ def analyze_data(config):
 
     #create db and tables
     for col in analysis_collection_list:
-        dbif.db_create_collection(globals.ANALYSIS_DB_NAME, col, dbif.REMOVE_IF_EXISTS)
+        dbif.db_create_collection(globals.ANALYSIS_DB_NAME, col, dbif.DO_NOTHING_IF_EXISTS)
 
-    _analyze_each_collection_and_store_results_in_db(globals.DATA_COLLECTION_DB_NAME, globals.ANALYSIS_DB_NAME)
+    _map_reduce_each_collection(globals.DATA_COLLECTION_DB_NAME, globals.ANALYSIS_DB_NAME)

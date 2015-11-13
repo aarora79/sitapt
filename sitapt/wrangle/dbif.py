@@ -21,6 +21,7 @@ import pickle
 import pprint
 import gzip
 from pymongo import MongoClient
+from bson.son import SON
 
 #import submodules
 from globals import globals
@@ -123,7 +124,7 @@ def db_get_collection_names(db_name, name_filter = None):
 
     return name_list
 
-def db_collection_find_records(db_name, collection_name, filter_dict):
+def db_collection_find_records(db_name, collection_name, filter_query):
     status = DBIF_OK
     error_text = ''
     #chek if db initted correctly
@@ -134,7 +135,7 @@ def db_collection_find_records(db_name, collection_name, filter_dict):
 
     #check if collection exists
     if collection_name not in db_parms['client'][db_name].collection_names():
-        error_text = 'Collection ' + collection_name + 'does not exist in db, existing..'
+        error_text = 'Collection ' + collection_name + ' does not exist in db, exiting..'
         logger.error(error_text)
         return DBIF_ERROR, error_text
 
@@ -142,10 +143,11 @@ def db_collection_find_records(db_name, collection_name, filter_dict):
     collection_to_query = db_parms['client'][db_name][collection_name]
 
     #find records
-    #records_cursor = collection_to_query.find(filter_dict)
-    num_records = collection_to_query.find(filter_dict).count()
+    records_cursor = collection_to_query.find(filter_query)
+    num_records = records_cursor.count()
 
     logger.info('found ' + num_records + 'records in the collection that match the search criteria')
+    return records_cursor, num_records
 
 def db_get_collection_count(db_name, coll_name):
     count = 0
@@ -157,10 +159,85 @@ def db_get_collection_count(db_name, coll_name):
 
     #check if collection exists
     if coll_name not in db_parms['client'][db_name].collection_names():
-        error_text = 'Collection ' + coll_name + 'does not exist in db, existing..'
+        error_text = 'Collection ' + coll_name + ' does not exist in db, exiting..'
         logger.error(error_text)
         return DBIF_ERROR, error_text, count
 
     count = db_parms['client'][db_name][coll_name].count()
     return DBIF_OK, '', count
     
+def db_run_pipeline(db_name, coll_name, ppln):
+    cursor = ''
+    #chek if db initted correctly
+    if db_parms['initted'] == False:
+        error_text = 'DB not yet initted, cannot query collection ' + coll_name
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, cursor
+
+    #check if collection exists
+    if coll_name not in db_parms['client'][db_name].collection_names():
+        error_text = 'Collection ' + coll_name + ' does not exist in db, exiting..'
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, cursor
+
+    #ok ready to run pipeline
+    cursor = db_parms['client'][db_name][coll_name].aggregate(ppln)
+    return DBIF_OK, '', cursor
+
+def db_get_all_records_in_collection(db_name, coll_name):
+    cursor = ''
+    #chek if db initted correctly
+    if db_parms['initted'] == False:
+        error_text = 'DB not yet initted, cannot query collection ' + coll_name
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, cursor
+
+    #check if collection exists
+    if coll_name not in db_parms['client'][db_name].collection_names():
+        error_text = 'Collection ' + coll_name + ' does not exist in db, exiting..'
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, cursor
+
+    #ok ready to run pipeline
+    cursor = db_parms['client'][db_name][coll_name].find()
+    return DBIF_OK, '', cursor
+
+def db_do_mapreduce(db_name, coll_name, mapper, reducer, output):
+    result_coll = ''
+    #chek if db initted correctly
+    if db_parms['initted'] == False:
+        error_text = 'DB not yet initted, cannot query collection ' + coll_name
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, result_coll
+
+    #check if collection exists
+    if coll_name not in db_parms['client'][db_name].collection_names():
+        error_text = 'Collection ' + coll_name + ' does not exist in db, exiting..'
+        logger.error(error_text)
+        return DBIF_ERROR, error_text, result_coll
+
+    #ok ready to run pipeline
+    result_coll = db_parms['client'][db_name][coll_name].map_reduce(mapper, reducer, output)
+    return DBIF_OK, '', result_coll
+
+def db_is_doc_in_coll(db_name, coll_name, query):
+    found = False
+    #chek if db initted correctly
+    if db_parms['initted'] == False:
+        error_text = 'DB not yet initted, cannot query collection ' + coll_name
+        logger.error(error_text)
+        return found
+
+    #check if collection exists
+    if coll_name not in db_parms['client'][db_name].collection_names():
+        error_text = 'Collection ' + coll_name + 'does not exist in db, exiting..'
+        logger.error(error_text)
+        return found
+
+    #ok ready to run pipeline
+    doc = db_parms['client'][db_name][coll_name].find_one(query)
+    if doc != None:
+        found = True
+    return found
+
+

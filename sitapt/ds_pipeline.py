@@ -21,6 +21,7 @@ from ingest import ingest
 from wrangle import wrangle
 from wrangle import dbif
 from analyze import analyze
+from visualize import visualize_and_analyze
 #global varialbes for this file
 
 #functions in the this module
@@ -43,11 +44,17 @@ def run_ds_pipeline(config):
         #time for data wrangling
         wrangle.wrangle_data(config)
     else:
-        print 'skipping wrangling and insertion of data into db ...'
+        logger.info('skipping wrangling and insertion of data into db ...')
 
     if config['action']['analyze']['analyze'] == True:
-        #time for data wrangling
+        #time for data analysis
         analyze.analyze_data(config)
     else:
-        print 'skipping analysis ...'
+        logger.info('skipping analysis ...')
+
+    if config['action']['visualize']['visualize'] == True:
+        #time for data visualization
+        visualize_and_analyze.visualize_data(config)
+    else:
+        logger.info('skipping visualization ...')
     

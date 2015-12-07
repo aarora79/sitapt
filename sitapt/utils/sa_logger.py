@@ -14,7 +14,7 @@ def _check_if_already_registered(module_name):
             return True, m
     return False, {}
             
-def init(module_name='app', log_level=logging.INFO, write_to_file=None):
+def init(module_name='app', log_level=logging.INFO, write_to_file='sitapt.log'):
 
     #create a logger object for this application only if not already created
     #if module_name in modules_using_logger:
@@ -29,13 +29,10 @@ def init(module_name='app', log_level=logging.INFO, write_to_file=None):
     #gw_logger.basicConfig(format=FORMAT)
 
     # create console handler and set level to debug
-    print 'write_to_file ' + str(write_to_file)
     if write_to_file == None:
-        print ' wring to STDOUT'
         ch = logging.StreamHandler(stream = None)
     else:
         f = open(write_to_file, 'w')
-        print 'writing............'
         ch = logging.StreamHandler(stream = f)
 
     ch.setLevel(log_level)

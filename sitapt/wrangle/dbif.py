@@ -22,6 +22,7 @@ import pprint
 import gzip
 from pymongo import MongoClient
 from bson.son import SON
+import pandas as pd
 
 #import submodules
 from globals import globals
@@ -124,20 +125,21 @@ def db_get_collection_names(db_name, name_filter = None):
 
     return name_list
 
-def db_collection_find_records(db_name, collection_name, filter_query):
+def db_collection_find_records(db_name, collection_name, filter_query = None):
     status = DBIF_OK
     error_text = ''
+    records_cursor = ''
     #chek if db initted correctly
     if db_parms['initted'] == False:
         error_text = 'DB not yet initted, cannot query collection ' + collection_name
         logger.error(error_text)
-        return DBIF_ERROR, error_text
+        return DBIF_ERROR, error_text, records_cursor
 
     #check if collection exists
     if collection_name not in db_parms['client'][db_name].collection_names():
         error_text = 'Collection ' + collection_name + ' does not exist in db, exiting..'
         logger.error(error_text)
-        return DBIF_ERROR, error_text
+        return DBIF_ERROR, error_text, records_cursor
 
     #read to query
     collection_to_query = db_parms['client'][db_name][collection_name]
@@ -146,8 +148,8 @@ def db_collection_find_records(db_name, collection_name, filter_query):
     records_cursor = collection_to_query.find(filter_query)
     num_records = records_cursor.count()
 
-    logger.info('found ' + num_records + 'records in the collection that match the search criteria')
-    return records_cursor, num_records
+    logger.info('found ' + str(num_records) + 'records in the collection that match the search criteria')
+    return status, error_text, records_cursor
 
 def db_get_collection_count(db_name, coll_name):
     count = 0
@@ -240,4 +242,4 @@ def db_is_doc_in_coll(db_name, coll_name, query):
         found = True
     return found
 
-
+    

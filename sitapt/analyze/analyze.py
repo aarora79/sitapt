@@ -21,7 +21,7 @@ import pickle
 import pprint
 import gzip
 import json
-
+import pandas as pd
 
 #import submodules
 from globals import globals
@@ -126,14 +126,148 @@ def _map_reduce_each_collection(data_coll_db_name, data_analysis_db_name):
         logger.info('analyzing collection ' + coll)
         _map_reduce_collection(data_coll_db_name, coll, data_analysis_db_name)
     logger.info('finished analysing collections in ' + data_coll_db_name)
-#public functions in the this module
 
+
+def _get_df_for_protocol_data(coll_name):
+    #iterate through the list of collections
+    logger.info('converting ' + coll_name + ' to dataframe for easy analysis')
+    status, error, cursor = dbif.db_collection_find_records(globals.ANALYSIS_DB_NAME, coll_name)
+    #create a dataframe to hold the contents
+    df = pd.DataFrame()
+    count = 0
+    if status == dbif.DBIF_OK:
+        #read the documents one by one using the cursor
+        for doc in cursor:
+            nan_or_unassigned = 0.0
+            df.loc[count, 'Date'] = str(doc['meta']['ts']['year']) + '-' + str(doc['meta']['ts']['month']) + '-' + str(doc['meta']['ts']['day'])
+            for item in doc['items']:
+                proto = str(item['protocol'])        
+                #special handling for nan and unassigned (also handle the typo)
+                if proto == 'nan' or proto == 'unassgined' or proto == 'unassigned':
+                    nan_or_unassigned += float(item['pkts_percentage'])
+                    #print 'count ' + str(count) + ' proto ' + proto + 'pkts percentage ' + str(nan_or_unassigned)
+                    df.loc[count, 'unknown'] = nan_or_unassigned
+                else:
+                    df.loc[count, proto] = float(item['pkts_percentage'])
+            count += 1
+
+        #sort on the Date column
+        df['Date'] = pd.to_datetime(df.Date)
+        df = df.sort_values(by = 'Date')
+        #the entire document set it in the dataframe now, not all documents had all the fields
+        #replace NaNs with 0.0, this is because it makes sense to do this for pkts_percentage
+        df = df.fillna(0.0)
+        logger.info('created dataframe')
+    else:
+        logger.error('error while converting collection ' + coll + ' to dataframe')
+    return status, df
+
+def _get_df_for_pktsize_data(coll_name):
+    #iterate through the list of collections
+    logger.info('converting ' + coll_name + ' to dataframe for easy analysis')
+    status, error, cursor = dbif.db_collection_find_records(globals.ANALYSIS_DB_NAME, coll_name)
+    #create a dataframe to hold the contents
+    df = pd.DataFrame()
+    count = 0
+    if status == dbif.DBIF_OK:
+        #read the documents one by one using the cursor
+        for doc in cursor:
+            nan_or_unassigned = 0.0
+            df.loc[count, 'Date'] = str(doc['meta']['ts']['year']) + '-' + str(doc['meta']['ts']['month']) + '-' + str(doc['meta']['ts']['day'])
+            for item in doc['items']:
+                label = str(item['start']) + '-' +  str(item['end'])
+                df.loc[count, label] = float(item['count_percentage'])
+            count += 1
+
+        #sort on the Date column
+        df['Date'] = pd.to_datetime(df.Date)
+        df = df.sort_values(by = 'Date')
+        #the entire document set it in the dataframe now, not all documents had all the fields
+        #replace NaNs with 0.0, this is because it makes sense to do this for pkts_percentage
+        df = df.fillna(0.0)
+        logger.info('created dataframe')
+    else:
+        logger.error('error while converting collection ' + coll + ' to dataframe')
+    return status, df
+
+def _get_df_for_quic_data(coll_name):
+    #iterate through the list of collections
+    logger.info('converting ' + coll_name + ' to dataframe for easy analysis')
+    status, error, cursor = dbif.db_collection_find_records(globals.ANALYSIS_DB_NAME, coll_name)
+    #create a dataframe to hold the contents
+    df = pd.DataFrame()
+    count = 0
+    if status == dbif.DBIF_OK:
+        #read the documents one by one using the cursor
+        for doc in cursor:
+            df.loc[count, 'Date'] = str(doc['meta']['ts']['year']) + '-' + str(doc['meta']['ts']['month']) + '-' + str(doc['meta']['ts']['day'])
+
+            df.loc[count, 'pkts_percentage'] = float(doc['items']['pkts_percentage'])
+            df.loc[count, 'bytes_percentage'] = float(doc['items']['bytes_percentage'])
+            count += 1
+
+        #sort on the Date column
+        df['Date'] = pd.to_datetime(df.Date)
+        df = df.sort_values(by = 'Date')
+        #the entire document set it in the dataframe now, not all documents had all the fields
+        #replace NaNs with 0.0, this is because it makes sense to do this for pkts_percentage
+        df = df.fillna(0.0)
+        logger.info('created dataframe')
+    else:
+        logger.error('error while converting collection ' + coll + ' to dataframe')
+    return status, df
+
+
+
+def _read_data_from_db_to_dataframe(config):
+
+    #iterate through the list of collections
+    logger.info('iterating through the collections to convert them into dataframes for easy analysis')
+    #for coll in analysis_collection_list:
+    status, df = _get_df_for_protocol_data('protocols')
+    if status == dbif.DBIF_OK:
+        csv_file_name = 'protocols.csv'
+        df.to_csv(csv_file_name)
+        logger.info('written ' + csv_file_name)
+    else:
+        logger.error('error while converting \'protocols\' collection  to dataframe')
+
+    status, df = _get_df_for_protocol_data('applications')
+    if status == dbif.DBIF_OK:
+        csv_file_name = 'applications.csv'
+        df.to_csv(csv_file_name)
+        logger.info('written ' + csv_file_name)
+    else:
+        logger.error('error while converting \'applications\' collection  to dataframe')
+
+    status, df = _get_df_for_pktsize_data('packet_size_distribution')
+    if status == dbif.DBIF_OK:
+        csv_file_name = 'packet_size_distribution.csv'
+        df.to_csv(csv_file_name)
+        logger.info('written ' + csv_file_name)
+    else:
+        logger.error('error while converting \'packet_size_distribution\' collection  to dataframe')
+
+    status, df = _get_df_for_quic_data('quic_info')
+    if status == dbif.DBIF_OK:
+        csv_file_name = 'quic_info.csv'
+        df.to_csv(csv_file_name)
+        logger.info('written ' + csv_file_name)
+    else:
+        logger.error('error while converting \'quic_info\' collection  to dataframe')
+
+#public functions in the this module
 def analyze_data(config):
     #get logger object, probably already created
     logger.info('analysis phase begining...')
 
-    #create db and tables
-    for col in analysis_collection_list:
-        dbif.db_create_collection(globals.ANALYSIS_DB_NAME, col, dbif.DO_NOTHING_IF_EXISTS)
+    if config['action']['analyze']['create_analysis_db'] == True:
+        logger.info('create_analysis_db set to True, checking which collections to be created new')
+        #create db and tables
+        for col in analysis_collection_list:
+            dbif.db_create_collection(globals.ANALYSIS_DB_NAME, col, dbif.DO_NOTHING_IF_EXISTS)
 
-    _map_reduce_each_collection(globals.DATA_COLLECTION_DB_NAME, globals.ANALYSIS_DB_NAME)
+        _map_reduce_each_collection(globals.DATA_COLLECTION_DB_NAME, globals.ANALYSIS_DB_NAME)
+
+    #now read to analyse the data
+    _read_data_from_db_to_dataframe(config)

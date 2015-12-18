@@ -8,7 +8,7 @@ from collections import OrderedDict
 from globals import globals
 from utils import sa_logger
 
-COLUMNS_TO_SKIP = 4 #skip Date, Year, Half, Quarter
+COLUMNS_TO_SKIP = 6 #skip Date, Year, Half, Quarter, fortnight, day of the week
 logger = sa_logger.init(globals.PACKAGE_NAME)
 
 def get_significant_features(df, minimum_feature_contribution):

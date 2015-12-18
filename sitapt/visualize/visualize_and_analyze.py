@@ -9,6 +9,8 @@ from globals import globals
 from utils import sa_logger
 import charts
 import tsa
+import kmeans
+import linreg
 
 import numpy as np
 from bokeh.plotting import figure, show, output_file, vplot
@@ -29,11 +31,14 @@ from bokeh._legacy_charts import Bar, output_file, show
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from datetime import datetime
+import calendar
+
 #global varialbes for this file
 logger = sa_logger.init(globals.PACKAGE_NAME)
-features = [ {'filename': 'applications.csv', 'minimum_feature_contribution': 0.5, 'chart_types': ['stacked-bar'], 'analysis': [ 'tsa']},
-             {'filename': 'protocols.csv', 'minimum_feature_contribution': 0.01, 'chart_types': ['stacked-bar'], 'analysis': [ 'tsa']},
-             {'filename': 'packet_size_distribution.csv', 'minimum_feature_contribution': 0.0, 'chart_types': ['stacked-bar', 'heat-map'], 'analysis': [ 'tsa', 'other']}
+features = [ {'filename': 'applications.csv', 'minimum_feature_contribution': 0.5, 'chart_types': ['stacked-bar'], 'analysis': [ 'kmeans', 'tsa']},
+             {'filename': 'protocols.csv', 'minimum_feature_contribution': 0.01, 'chart_types': ['stacked-bar'], 'analysis': [ 'kmeans', 'tsa', 'linreg']},
+             {'filename': 'packet_size_distribution.csv', 'minimum_feature_contribution': 0.0, 'chart_types': ['stacked-bar', 'heat-map'], 'analysis': [ 'kmeans', 'tsa', 'other']}
            ]
 
 #functions in the this modul
@@ -54,6 +59,8 @@ def _add_more_info_to_df(df, filename):
     q_list = []
     h_list = []
     y_list = []
+    f_list = []
+    d_list = []
     for d in df['Date']:
         t = time.strptime(d, "%Y-%m-%d")
         if t.tm_mon % 3:
@@ -67,12 +74,22 @@ def _add_more_info_to_df(df, filename):
         else:
             h = (t.tm_mon / 6) 
         h_list.append(h)
-
         y_list.append(t.tm_year)
+
+        if t.tm_mday > 1 and t.tm_mday <= 15:
+            f = 1
+        else:
+            f = 2 
+        f_list.append(f)
+
+        d = datetime.strptime(d, "%Y-%m-%d")
+        d_list.append(calendar.day_name[d.weekday()])
 
     df.insert(1, 'Year', y_list)
     df.insert(2, 'Half', h_list)
     df.insert(3, 'Quarter', q_list)
+    df.insert(4, 'Fortnight', f_list)
+    df.insert(5, 'DayOfTheWeek', d_list)
 
     logger.info('after adding more info, head ->')
     logger.info(df.head())
@@ -103,6 +120,13 @@ def _do_visualization_and_analysis(file_name, minimum_feature_contribution, char
     if 'tsa' in analysis_types:
         tsa.model_tsa(df, file_name, minimum_feature_contribution)
 
+    #clustering..
+    if 'kmeans' in analysis_types:
+        kmeans.model_kmeans(df, file_name, minimum_feature_contribution)
+
+    #linear regression
+    if 'linreg' in analysis_types:
+        linreg.do_linear_regression(file_name)
 
 def visualize_data(config):
     for feature in features:

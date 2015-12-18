@@ -113,6 +113,38 @@ def _draw_decomposition_plot(filename, X, decomposition, legend, x_axis_type, x_
 
     save(vplot(p), filename=filename, title='seasonal_decompose')  
 
+def _create_grid_plot_of_trends(df, X, col_list, filename):
+
+    width  = 600
+    height = 400
+        
+    color_palette = [ 'Black', 'Red', 'Purple', 'Green', 'Brown', 'Yellow', 'Cyan', 'Blue', 'Orange', 'Pink']
+    i = 0
+    #2 columns, so number of rows is total /2 
+    row_index = 0
+    row_list = []
+    row = []
+    for col in col_list[1:]: #skip the date column
+        # create a new plot
+        s1 = figure(x_axis_type = 'datetime', width=width, plot_height=height, title=col + ' trend')
+        #seasonal decompae to extract seasonal trends
+        decomposition = seasonal_decompose(np.array(df[col]), model='additive', freq=15)  
+        s1.line(X, decomposition.trend, color=color_palette[i % len(color_palette)], alpha=0.5, line_width=2)
+
+        row.append(s1)
+        if len(row) == 2:
+            row_copy = copy.deepcopy(row)
+            row_list.append(row_copy)
+            row = []
+            i = 0
+        i += 1
+        
+
+    # put all the plots in a grid layout
+    p = gridplot(row_list)
+
+    save(vplot(p), filename=filename, title='trends')  
+
 def _try_ARIMA_and_ARMA_models(s, df, feature):
     #model this as an ARIMA (Auto-Regressive Integrated Moving Average) with p=3, d=0, q=0
     #p is the number of autoregressive terms,
@@ -262,7 +294,7 @@ def model_feature(file_name, df, feature):
     #df['First Difference'] = df[feature] - df[feature].shift()  
     y = np.array(df[feature] - df[feature].shift())
     _draw_multiple_line_plot('first_difference.html', 
-                             'features', 
+                             feature, 
                              [X],
                              [y],
                              ['navy'], 
@@ -310,7 +342,7 @@ def model_feature(file_name, df, feature):
                              'datetime', 'Date', 'lag_partial_correlations', y_start=-1, y_end=1)
 
     #seasonal decompae to extract seasonal trends
-    decomposition = seasonal_decompose(np.array(df[feature]), model='additive', freq=30)  
+    decomposition = seasonal_decompose(np.array(df[feature]), model='additive', freq=15)  
     _draw_decomposition_plot('decomposition.html', X, decomposition, 'seasonal decomposition', 'datetime', 'decomposition', width=600, height=400)
 
 
@@ -386,6 +418,9 @@ def model_tsa(df, file_name, minimum_feature_contribution):
     output_file_name = os.path.join(os.path.sep, os.getcwd(), OUTPUT_DIR_NAME, file_name_wo_extn, file_name_wo_extn + '_model_data.csv')
     df_output.to_csv(output_file_name, index = False)
 
+    #create a grid plot of the trends in predicted protocols
+    output_file_name = os.path.join(os.path.sep, os.getcwd(), OUTPUT_DIR_NAME, file_name_wo_extn, file_name_wo_extn + '_trends.html')
+    _create_grid_plot_of_trends(df, np.array(df['Date'], dtype=np.datetime64), predicted_col_list_with_data, output_file_name)
     #now create dataframe with predictions added
     #the date format in df_predictions is a string generated from np.datetime64 so it is of a different form
     #convert it to a string first

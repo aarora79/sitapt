@@ -18,3 +18,5 @@ Features
 --------
 
 * TODO
+%run sitapt.py -c aa1603@georgetown.edu:amit1234 -w 'sitapt.log' -d D:\\datalake -u https://data.caida.org/datasets/passive-2015/ https://data.caida.org/datasets/passive-2014/ https://data.caida.org/datasets/passive-2013/ https://data.caida.org/datasets/passive-2012/ https://data.caida.org/datasets/passive-2011/ https://data.caida.org/datasets/passive-2010/ https://data.caida.org/datasets/passive-2009/ https://data.caida.org/datasets/passive-2008/ -a "{"ingest" : { "make_list" : true, "download": true}, "wrangle":{"transform": true}, "analyze":{"create_analysis_db":true, "analyze": true},"visualize": {"visualize": true}}"
+

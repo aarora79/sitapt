@@ -28,7 +28,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 #global varialbes for this file
 logger = sa_logger.init(globals.PACKAGE_NAME)
-COLUMNS_TO_SKIP = 4
+COLUMNS_TO_SKIP = 6
+OUTPUT_DIR_NAME = 'output'
 
 def draw_heat_map(df, file_name, minimum_feature_contribution):
     # this is the colormap from the original plot
@@ -58,7 +59,10 @@ def draw_heat_map(df, file_name, minimum_feature_contribution):
     )
 
     feature_name = file_name[:-4]
-    chart_file_name = feature_name + '_hm.html'
+    #chart_file_name = feature_name + '_hm.html'
+    file_name_wo_extn = file_name[:-4]
+    chart_file_name = os.path.join(os.path.sep, os.getcwd(), OUTPUT_DIR_NAME, file_name_wo_extn + '_hm.html')
+    #output_file(chart_file_name)
     
     output_file(chart_file_name)
 
@@ -102,8 +106,12 @@ def draw_stacked_chart(df, file_name, minimum_feature_contribution):
     data['everything-else'] = remaining_features_values
 
     feature_name = file_name[:-4]
-    chart_file_name = feature_name + '.html'
+    #chart_file_name = feature_name + '.html'
+    #output_file(chart_file_name)
+    file_name_wo_extn = file_name[:-4]
+    chart_file_name = os.path.join(os.path.sep, os.getcwd(), OUTPUT_DIR_NAME, file_name_wo_extn + '_stacked_chart.html')
     output_file(chart_file_name)
+
 
     title = feature_name.upper() + ' distribution from ' + str(df['Date'][0]) + ' to ' + str(df['Date'][len(df) - 1])
     bar = Bar(data, X, title= title, stacked=True, legend='bottom_left', tools='hover,pan,wheel_zoom,box_zoom,reset,resize', width=1300, height=500)

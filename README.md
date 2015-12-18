@@ -3,7 +3,6 @@
 The last ten to fifteen years have seen a pervasive growth of the Internet both in terms of its depth of penetration into user population as well the breadth of areas into which Internet is now present. As Internet access becomes faster and applications move to the cloud the profile of Internet traffic continues to change. Peer to Peer traffic, video sharing and OTT (over the top) services coupled with almost ubiquitous access to high speed internet poses new challenges to service providers (how to better utilize bandwidth) as well OEMs (how to increase bits per second and packets per second through the equipment).
 
 A key to understanding and solving these challenges is to understand what constitutes Internet traffic and how the internet traffic will look like in the coming years and then based on that optimize networks and infrastructure to better utilize available resources.  This is what this project aims to address i.e. understanding internet traffic from various perspectives (application, protocol, packet size and others) such that this understanding can then feed into network and infrastructure design. A data product named SITAPT (Study of Internet Traffic to Analyze and Predict Traffic) is built which addresses the aims of this project.
-At the top of the file there should be a short introduction and/ or overview that explains **what** the project is. This description should match descriptions added for package managers (Gemspec, package.json, etc.)
 
 ## Features
 
@@ -15,6 +14,7 @@ At the top of the file there should be a short introduction and/ or overview tha
 ## Installation and how to run
 
 python setup.py install
+
 To run the program, say
 
 %run sitapt.py -c username:password -w 'sitapt.log' -d D:\\datalake -u https://data.caida.org/datasets/passive-2015/ https://data.caida.org/datasets/passive-2014/ https://data.caida.org/datasets/passive-2013/ https://data.caida.org/datasets/passive-2012/ https://data.caida.org/datasets/passive-2011/ https://data.caida.org/datasets/passive-2010/ https://data.caida.org/datasets/passive-2009/ https://data.caida.org/datasets/passive-2008/ -a "{"ingest" : { "make_list" : true, "download": true}, "wrangle":{"transform": true}, "analyze":{"create_analysis_db":true, "analyze": true},"visualize": {"visualize": true}}"

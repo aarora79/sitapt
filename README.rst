@@ -1,22 +1,27 @@
 ===============================
-sitapt
+Study of Internet traffic to analyze and predict traffic (SITAPT) mix by protocol, application and packet size
 ===============================
+The last ten to fifteen years have seen a pervasive growth of the Internet both in terms of its depth of penetration into user population as well the breadth of areas into which Internet is now present. As Internet access becomes faster and applications move to the cloud the profile of Internet traffic continues to change. Peer to Peer traffic, video sharing and OTT (over the top) services coupled with almost ubiquitous access to high speed internet poses new challenges to service providers (how to better utilize bandwidth) as well OEMs (how to increase bits per second and packets per second through the equipment).
+ A key to understanding and solving these challenges is to understand what constitutes Internet traffic and how the internet traffic will look like in the coming years and then based on that optimize networks and infrastructure to better utilize available resources.  This is what this project aims to address i.e. understanding internet traffic from various perspectives (application, protocol, packet size and others) such that this understanding can then feed into network and infrastructure design. A data product named SITAPT (Study of Internet Traffic to Analyze and Predict Traffic) is built which addresses the aims of this project.
 
-.. image:: https://img.shields.io/travis/aarora79/sitapt.svg
-        :target: https://travis-ci.org/aarora79/sitapt
-
-.. image:: https://img.shields.io/pypi/v/sitapt.svg
-        :target: https://pypi.python.org/pypi/sitapt
-
-
-Study of Internet traffic to analyze and predict traffic mix by protocol, application and other criteria (SITAPT)
 
 * Free software: ISC license
-* Documentation: https://sitapt.readthedocs.org.
+* Documentation: Link to slide share coming soon.
 
 Features
 --------
+- Visualization of traffic data
+- Time Series Analysis for Traffic Prediction
+- Clustering to Explore Similarity
+- Relationship between traffic types
 
-* TODO
-%run sitapt.py -c aa1603@georgetown.edu:amit1234 -w 'sitapt.log' -d D:\\datalake -u https://data.caida.org/datasets/passive-2015/ https://data.caida.org/datasets/passive-2014/ https://data.caida.org/datasets/passive-2013/ https://data.caida.org/datasets/passive-2012/ https://data.caida.org/datasets/passive-2011/ https://data.caida.org/datasets/passive-2010/ https://data.caida.org/datasets/passive-2009/ https://data.caida.org/datasets/passive-2008/ -a "{"ingest" : { "make_list" : true, "download": true}, "wrangle":{"transform": true}, "analyze":{"create_analysis_db":true, "analyze": true},"visualize": {"visualize": true}}"
+--------
+Following is the command line from within IPython. Note that this would execute the entire pipeline, which is probably not something you want to do.
+
+%run sitapt.py -c username:password -w 'sitapt.log' -d D:\\datalake -u https://data.caida.org/datasets/passive-2015/ https://data.caida.org/datasets/passive-2014/ https://data.caida.org/datasets/passive-2013/ https://data.caida.org/datasets/passive-2012/ https://data.caida.org/datasets/passive-2011/ https://data.caida.org/datasets/passive-2010/ https://data.caida.org/datasets/passive-2009/ https://data.caida.org/datasets/passive-2008/ -a "{"ingest" : { "make_list" : true, "download": true}, "wrangle":{"transform": true}, "analyze":{"create_analysis_db":true, "analyze": true},"visualize": {"visualize": true}}"
+
+To selectively run portions of the pipeline only include those actions that you want executed. For example, to only run the visualization part, just say
+%run sitapt.py -a visualize
+
+the visualize part is probably the only part you want to run unless you want to download new data.
 

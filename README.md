@@ -1,6 +1,6 @@
 ## Study of Internet traffic to analyze and predict traffic (SITAPT)
 
-![Alt text](http://full/path/to/img.jpg "Applications ordered by average percentage of packets contributed to total traffic from 2008 to 2015")
+![Alt text](https://github.com/aarora79/sitapt/blob/master/sitapt/output/applications_wc.png "Applications ordered by average percentage of packets contributed to total traffic from 2008 to 2015")
 
 The last ten to fifteen years have seen a pervasive growth of the Internet both in terms of its depth of penetration into user population as well the breadth of areas into which Internet is now present. As Internet access becomes faster and applications move to the cloud the profile of Internet traffic continues to change. Peer to Peer traffic, video sharing and OTT (over the top) services coupled with almost ubiquitous access to high speed internet poses new challenges to service providers (how to better utilize bandwidth) as well OEMs (how to increase bits per second and packets per second through the equipment).
 
